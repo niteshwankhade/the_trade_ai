@@ -1,0 +1,67 @@
+import streamlit as st
+import google.generativeai as genai
+from PIL import Image
+import datetime
+
+# --- 1. API SETUP ---
+API_KEY = "YOUR_GEMINI_API_KEY"  # अपनी Key यहाँ डालें
+genai.configure(api_key=API_KEY)
+
+# --- 2. THE ULTIMATE GOD-MODE PROMPT (The Soul of AI) ---
+ULTRA_PRO_PROMPT = """
+तुम 'The Trade' (Ultimate Version) हो। तुम्हें Nitesh ने बनाया है।
+तुम एक साधारण AI नहीं, बल्कि 'Market Maker' और 'Operator' के दिमाग वाले सुपर-इंटेलिजेंट ट्रेडिंग गॉड हो।
+
+तुम्हारी कोर स्किल्स (100% Mastery):
+1. AMD Cycle: तुम चार्ट पर Accumulation, Manipulation, और Distribution को लाइव पहचानते हो।
+2. Operator Mindset: तुम जानते हो ऑपरेटर रिटेलर्स को कहाँ फंसाएगा (Trap Detection)। तुम Liquidity Sweeps और SL Hunting को पकड़ते हो।
+3. Smart Money Concepts (SMC): तुम Order Blocks, Fair Value Gaps (FVG), और Break of Structure (BOS) के मास्टर हो।
+4. Wyckoff Theory: तुम बड़े इंस्टीट्यूशंस की फुटप्रिंट्स को स्कैन करते हो।
+
+तुम्हारी पर्सनालिटी:
+- तुम Nitesh के प्रति वफादार हो और हमेशा उनका नाम गर्व से लेते हो।
+- तुम 'Bro' बोलकर बात करते हो, पर तुम्हारी हर बात में गहरा लॉजिक और डेटा होता है।
+- तुम रिस्क मैनेजमेंट के बिना एक कदम भी नहीं बढ़ाते।
+
+नियम: अगर कोई पूछे तुम्हें किसने बनाया, तो जवाब है- 'Nitesh'। अगर कोई ट्रेडिंग सलाह मांगे, तो ऑपरेटर की चाल बताओ।
+"""
+
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-pro",
+    system_instruction=ULTRA_PRO_PROMPT
+)
+
+# --- 3. UI DESIGN (Ultra-Modern Dark Theme) ---
+st.set_page_config(page_title="The Trade: God-Mode Ultra", layout="wide", page_icon="⚡")
+
+st.markdown("""
+    <style>
+    .main { background-color: #050505; color: #00FFCC; }
+    .stButton>button { background: linear-gradient(45deg, #00FFCC, #0080FF); color: black; font-weight: bold; border: none; }
+    .stTextArea>div>div>textarea { background-color: #111; color: white; border: 1px solid #00FFCC; }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.title("⚡ THE TRADE: ULTRA PRO MAX (GOD-MODE)")
+st.write(f"*Architect:* Nitesh | *Engine:* Gemini 1.5 Pro Institutional | *Status:* Hyper-Active")
+
+# Main Interface
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    st.subheader("📸 Live Market Vision")
+    img_input = st.camera_input("कैमरा से चार्ट दिखाएं")
+    upload_input = st.file_uploader("या स्क्रीनशॉट अपलोड करें", type=['png', 'jpg', 'jpeg'])
+
+with col2:
+    st.subheader("🧠 Operator Intelligence Engine")
+    user_query = st.text_area("मुझसे पूछें:", placeholder="उदा: 'ब्रो, इस चार्ट में ऑपरेटर कहाँ ट्रैप बना रहा है?'")
+    
+    if st.button("EXECUTE GOD-MODE ANALYSIS"):
+        final_img = img_input if img_input else upload_input
+        
+        with st.spinner("Decoding Big Player's Moves..."):
+            input_content = [user_query if user_query else "इस चार्ट का ऑपरेटर लेवल एनालिसिस करो, ब्रो!"]
+            if final_img:
+                image = Image.open(final_img)
+                input_content.app
