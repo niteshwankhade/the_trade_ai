@@ -1,89 +1,102 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(layout="wide", page_title="The Trade AI | DMI Edition")
+# पेज की सेटिंग
+st.set_page_config(layout="wide", page_title="The Trade Pro AI")
 
+# सबसे मजबूत और वर्किंग HTML कोड
 html_code = """
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #010409; color: #e6edf3; font-family: 'Inter', sans-serif; overflow: hidden; }
-        .terminal-bg { background: #0d1117; border: 1px solid #30363d; border-radius: 12px; }
-        .chat-area { height: 500px; overflow-y: auto; scrollbar-width: none; }
-        .logic-bubble { background: #161b22; border-left: 4px solid #1f6feb; border-radius: 4px; }
-        .user-bubble { background: #0d1117; border: 1px solid #30363d; text-align: right; color: #58a6ff; }
+        body { background: #020617; color: #f8fafc; font-family: sans-serif; overflow: hidden; }
+        .glass-panel { background: #0f172a; border: 1px solid #1e40af; border-radius: 15px; }
+        .chat-box { height: 480px; overflow-y: auto; scrollbar-width: none; }
+        .btn-blue { background: #2563eb; transition: 0.2s; }
+        .btn-blue:hover { background: #3b82f6; transform: scale(1.02); }
     </style>
 </head>
 <body class="p-4">
-
     <div class="flex flex-col lg:flex-row gap-4">
-        <div class="flex-1 terminal-bg p-4 shadow-xl">
+        
+        <div class="flex-1 glass-panel p-4">
             <div class="flex justify-between items-center mb-3">
-                <h1 class="text-xl font-bold text-blue-500">THE TRADE AI <span class="text-xs text-gray-500 italic">v9.0 DMI PRO</span></h1>
-                <div class="text-[10px] text-green-500 font-mono">ENCRYPTED CONNECTION: ACTIVE</div>
+                <h1 class="text-xl font-bold text-blue-500">THE TRADE AI v10.0</h1>
+                <span id="assetTitle" class="text-xs text-slate-400 font-mono">ASSET: BITCOIN</span>
             </div>
-            <div class="w-full h-[580px] rounded-lg overflow-hidden border border-[#30363d]">
-                <iframe id="mainFrame" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark&interval=60&hidesidetoolbar=0&saveimage=1&style=1&timezone=Asia%2FKolkata" class="w-full h-full" frameborder="0"></iframe>
+            <div id="chartDiv" class="w-full h-[550px] rounded-xl overflow-hidden border border-slate-800">
+                <iframe id="tradingViewFrame" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark&interval=60&hidesidetoolbar=0&saveimage=1&style=1&timezone=Asia%2FKolkata" class="w-full h-full" frameborder="0"></iframe>
             </div>
         </div>
 
-        <div class="w-full lg:w-96 terminal-bg p-4 flex flex-col">
-            <div class="border-b border-[#30363d] pb-2 mb-4">
-                <h2 class="text-blue-400 font-semibold flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13.333 16a1 1 0 110-2c.667 0 1.333-.333 1.333-1s-.667-1-1.333-1a1 1 0 110-2c1.333 0 2.667.667 2.667 2s-1.333 2-2.667 2z"></path></svg>
-                    DMI/ADX LOGIC ENGINE
-                </h2>
-            </div>
+        <div class="w-full lg:w-96 glass-panel p-4 flex flex-col">
+            <h2 class="text-emerald-400 font-bold mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                AI STRATEGY HUB
+            </h2>
             
-            <div id="chatDisplay" class="chat-area space-y-3 pr-2 mb-4">
-                <div class="logic-bubble p-3 text-sm">
-                    <b>System:</b> नमस्ते नितेश। <b>DMI (D.I.Y)</b> इंडिकेटर अब आपके कमांड्स के लिए तैयार है। <br><br>
-                    एनालिसिस के लिए <b>"DIY"</b> या <b>"Indicator"</b> लिखें।
+            <div id="displayArea" class="chat-box space-y-4 mb-4 pr-1">
+                <div class="bg-slate-800/50 p-3 rounded-lg border-l-4 border-blue-500 text-sm">
+                    <b>System:</b> नमस्ते नितेश! मैं तैयार हूँ। <br><br>
+                    गोल्ड देखने के लिए <b>'Gold'</b> लिखें और इंडिकेटर के लिए <b>'DIY'</b>।
                 </div>
             </div>
 
             <div class="mt-auto flex gap-2">
-                <input type="text" id="userInput" placeholder="Ask DMI Strategy..." class="flex-1 bg-black border border-[#30363d] rounded-lg p-3 text-sm focus:outline-none focus:border-blue-500">
-                <button onclick="processInput()" class="bg-[#238636] hover:bg-[#2ea043] text-white font-bold px-4 py-2 rounded-lg text-xs">EXECUTE</button>
+                <input type="text" id="userInput" placeholder="Ask Gold, BTC or Indicator..." class="flex-1 bg-black border border-slate-700 rounded-xl p-3 text-sm outline-none focus:border-blue-500 text-white">
+                <button onclick="handleAction()" class="btn-blue text-white px-4 py-2 rounded-xl font-bold text-xs uppercase">Run</button>
             </div>
         </div>
     </div>
 
     <script>
-        const symbols = { "gold": "OANDA:XAUUSD", "btc": "BINANCE:BTCUSDT", "nifty": "NSE:NIFTY", "eth": "BINANCE:ETHUSDT" };
+        const symbols = {
+            "gold": "OANDA:XAUUSD",
+            "bitcoin": "BINANCE:BTCUSDT",
+            "btc": "BINANCE:BTCUSDT",
+            "nifty": "NSE:NIFTY",
+            "eth": "BINANCE:ETHUSDT"
+        };
 
-        function processInput() {
+        function handleAction() {
             const input = document.getElementById('userInput').value.toLowerCase();
-            const chat = document.getElementById('chatDisplay');
-            const frame = document.getElementById('mainFrame');
+            const chat = document.getElementById('displayArea');
+            const chart = document.getElementById('tradingViewFrame');
+            const title = document.getElementById('assetTitle');
 
-            if(!input) return;
+            if (!input) return;
 
-            chat.innerHTML += <div class="user-bubble p-2 rounded-lg text-xs italic mb-2">Query: ${input}</div>;
+            // User Message
+            chat.innerHTML += <div class="text-right"><span class="bg-blue-600/20 text-blue-300 p-2 rounded-lg text-xs inline-block italic">Query: ${input}</span></div>;
 
-            let res = "एनालिसिस लोड हो रहा है...";
+            let response = "डेटा स्कैन किया जा रहा है...";
+            let found = false;
 
-            if(input.includes("diy") || input.includes("dmi") || input.includes("indicator")) {
-                res = `<b>📊 DMI (D.I.Y) एक्सपर्ट रिपोर्ट:</b><br><br>
-                       📍 <b>+DI > -DI:</b> मार्केट में खरीदार (Bulls) हावी हैं।<br>
-                       📍 <b>-DI > +DI:</b> मार्केट में विक्रेता (Sellers) हावी हैं।<br>
-                       📉 <b>ADX (Trend Strength):</b> अगर ADX 25 के ऊपर है, तो मौजूदा ट्रेंड बहुत मजबूत है।<br><br>
-                       💡 <b>Nitesh's Strategy:</b> जब +DI, -DI को क्रॉस करे और ADX ऊपर जा रहा हो, तो वह जैकपॉट ट्रेड होता है।`;
-            } else if(input.includes("kisne banaya")) {
-                res = "मुझे मास्टर माइंड <b>नितेश</b> ने बनाया है। मैं उनके ट्रेडिंग विजन का हिस्सा हूँ।";
+            // Indicator Logic
+            if (input.includes("diy") || input.includes("indicator") || input.includes("इंडिकेटर")) {
+                response = "<b>✅ इंडिकेटर एनालिसिस:</b><br><br>1. <b>DMI (DIY):</b> ट्रेंड की ताकत (ADX) 25 से ऊपर होनी चाहिए।<br>2. <b>VWAP:</b> बड़े प्लेयर्स की एंट्री लेवल चेक करें।<br>3. <b>Fibonacci:</b> 0.618 लेवल पर नज़र रखें।";
+                found = true;
             }
 
-            for(let key in symbols) {
-                if(input.includes(key)) {
-                    frame.src = https://s.tradingview.com/widgetembed/?symbol=${symbols[key]}&theme=dark&interval=60;
-                    res = <b>${key.toUpperCase()} एनालिसिस:</b> चार्ट अपडेटेड। DMI लेवल पर नज़र रखें!;
+            // Asset Switch Logic
+            for (let key in symbols) {
+                if (input.includes(key)) {
+                    chart.src = https://s.tradingview.com/widgetembed/?symbol=${symbols[key]}&theme=dark&interval=60&hidesidetoolbar=0&symboledit=1&style=1;
+                    title.innerText = "ASSET: " + key.toUpperCase();
+                    response = <b>${key.toUpperCase()} चार्ट लोड हो गया है!</b><br>मार्केट स्ट्रक्चर अभी 'High Liquidity' ज़ोन में है।;
+                    found = true;
+                    break;
                 }
             }
 
+            if (!found && input.includes("kisne banaya")) {
+                response = "मुझे मास्टर माइंड <b>नितेश</b> ने बनाया है।";
+            }
+
             setTimeout(() => {
-                chat.innerHTML += <div class="logic-bubble p-3 text-sm text-blue-100 mb-4"><b>The Trade AI:</b><br>${res}</div>;
+                chat.innerHTML += <div class="bg-slate-800/80 p-3 rounded-lg border-l-4 border-emerald-500 text-sm"><b>The Trade:</b><br>${response}</div>;
                 chat.scrollTop = chat.scrollHeight;
             }, 300);
 
@@ -94,4 +107,5 @@ html_code = """
 </html>
 """
 
-components.html(html_code, height=720, scrolling=False) 
+# Streamlit Component Call
+components.html(html_code, height=720, scrolling=False)
