@@ -1,58 +1,65 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# पेज की सेटिंग
-st.set_page_config(layout="wide", page_title="The Trade Pro AI")
+st.set_page_config(layout="wide", page_title="The Trade AI - Final Fix")
 
-# सबसे मजबूत और वर्किंग HTML कोड
+# क्लीन और वर्किंग कोड
 html_code = """
 <!DOCTYPE html>
 <html>
 <head>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #020617; color: #f8fafc; font-family: sans-serif; overflow: hidden; }
-        .glass-panel { background: #0f172a; border: 1px solid #1e40af; border-radius: 15px; }
-        .chat-box { height: 480px; overflow-y: auto; scrollbar-width: none; }
-        .btn-blue { background: #2563eb; transition: 0.2s; }
-        .btn-blue:hover { background: #3b82f6; transform: scale(1.02); }
+        body { background: #020617; color: #f8fafc; font-family: ui-sans-serif, system-ui; overflow: hidden; }
+        .terminal { background: #0f172a; border: 2px solid #1e40af; border-radius: 16px; }
+        .chat-screen { height: 500px; overflow-y: auto; scroll-behavior: smooth; }
+        .chat-screen::-webkit-scrollbar { width: 0px; }
+        .input-field { background: #020617; border: 1px solid #334155; border-radius: 12px; color: white; }
+        .input-field:focus { border-color: #3b82f6; outline: none; }
     </style>
 </head>
 <body class="p-4">
-    <div class="flex flex-col lg:flex-row gap-4">
+    <div class="flex flex-col lg:flex-row gap-6">
         
-        <div class="flex-1 glass-panel p-4">
-            <div class="flex justify-between items-center mb-3">
-                <h1 class="text-xl font-bold text-blue-500">THE TRADE AI v10.0</h1>
-                <span id="assetTitle" class="text-xs text-slate-400 font-mono">ASSET: BITCOIN</span>
+        <div class="flex-1 terminal p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-xl font-black text-blue-500 italic">THE TRADE PRO v11.0</h1>
+                <div id="status" class="text-[10px] bg-blue-900/30 text-blue-400 px-2 py-1 rounded">SYSTEM: ONLINE</div>
             </div>
-            <div id="chartDiv" class="w-full h-[550px] rounded-xl overflow-hidden border border-slate-800">
-                <iframe id="tradingViewFrame" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark&interval=60&hidesidetoolbar=0&saveimage=1&style=1&timezone=Asia%2FKolkata" class="w-full h-full" frameborder="0"></iframe>
+            <div class="w-full h-[580px] rounded-xl overflow-hidden border border-slate-800">
+                <iframe id="mainChart" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark&interval=60&style=1" class="w-full h-full" frameborder="0"></iframe>
             </div>
         </div>
 
-        <div class="w-full lg:w-96 glass-panel p-4 flex flex-col">
+        <div class="w-full lg:w-[400px] terminal p-4 flex flex-col">
             <h2 class="text-emerald-400 font-bold mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
                 <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                AI STRATEGY HUB
+                OPERATOR INTELLIGENCE
             </h2>
             
-            <div id="displayArea" class="chat-box space-y-4 mb-4 pr-1">
-                <div class="bg-slate-800/50 p-3 rounded-lg border-l-4 border-blue-500 text-sm">
-                    <b>System:</b> नमस्ते नितेश! मैं तैयार हूँ। <br><br>
-                    गोल्ड देखने के लिए <b>'Gold'</b> लिखें और इंडिकेटर के लिए <b>'DIY'</b>।
+            <div id="chatBox" class="chat-screen space-y-4 mb-4 text-sm p-1">
+                <div class="bg-slate-800/50 p-3 rounded-lg border-l-4 border-blue-500">
+                    <b>The Trade:</b> नमस्ते नितेश! मैं तैयार हूँ। <br><br>
+                    एसेट का नाम (Gold, BTC) या सवाल टाइप करें।
                 </div>
             </div>
 
             <div class="mt-auto flex gap-2">
-                <input type="text" id="userInput" placeholder="Ask Gold, BTC or Indicator..." class="flex-1 bg-black border border-slate-700 rounded-xl p-3 text-sm outline-none focus:border-blue-500 text-white">
-                <button onclick="handleAction()" class="btn-blue text-white px-4 py-2 rounded-xl font-bold text-xs uppercase">Run</button>
+                <input type="text" id="userInput" placeholder="यहाँ लिखें..." class="input-field flex-1 p-3 text-sm">
+                <button onclick="process()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl font-bold transition-all">RUN</button>
             </div>
         </div>
     </div>
 
     <script>
-        const symbols = {
+        // Enter Key Support
+        document.getElementById("userInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                process();
+            }
+        });
+
+        const assets = {
             "gold": "OANDA:XAUUSD",
             "bitcoin": "BINANCE:BTCUSDT",
             "btc": "BINANCE:BTCUSDT",
@@ -60,52 +67,222 @@ html_code = """
             "eth": "BINANCE:ETHUSDT"
         };
 
-        function handleAction() {
-            const input = document.getElementById('userInput').value.toLowerCase();
-            const chat = document.getElementById('displayArea');
-            const chart = document.getElementById('tradingViewFrame');
-            const title = document.getElementById('assetTitle');
+        function process() {
+            const inputField = document.getElementById('userInput');
+            const input = inputField.value.trim().toLowerCase();
+            const chat = document.getElementById('chatBox');
+            const chart = document.getElementById('mainChart');
 
             if (!input) return;
 
-            // User Message
-            chat.innerHTML += <div class="text-right"><span class="bg-blue-600/20 text-blue-300 p-2 rounded-lg text-xs inline-block italic">Query: ${input}</span></div>;
+            // User Chat Bubble
+            chat.innerHTML += <div class="flex justify-end"><div class="bg-blue-600/20 text-blue-300 p-2 rounded-lg text-xs italic border border-blue-500/20">आप: ${input}</div></div>;
 
-            let response = "डेटा स्कैन किया जा रहा है...";
-            let found = false;
+            let reply = "क्षमा करें, मैं समझ नहीं पाया। कृपया 'Gold' या 'Indicator' लिखकर देखें।";
 
-            // Indicator Logic
-            if (input.includes("diy") || input.includes("indicator") || input.includes("इंडिकेटर")) {
-                response = "<b>✅ इंडिकेटर एनालिसिस:</b><br><br>1. <b>DMI (DIY):</b> ट्रेंड की ताकत (ADX) 25 से ऊपर होनी चाहिए।<br>2. <b>VWAP:</b> बड़े प्लेयर्स की एंट्री लेवल चेक करें।<br>3. <b>Fibonacci:</b> 0.618 लेवल पर नज़र रखें।";
-                found = true;
+            // 1. Creator Question (Priority)
+            if (input.includes("kisne banaya") || input.includes("किसने बनाया")) {
+                import streamlit as st
+import streamlit.components.v1 as components
+
+st.set_page_config(layout="wide", page_title="The Trade AI - Final Fix")
+
+# क्लीन और वर्किंग कोड
+html_code = """
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: #f8fafc; font-family: ui-sans-serif, system-ui; overflow: hidden; }
+        .terminal { background: #0f172a; border: 2px solid #1e40af; border-radius: 16px; }
+        .chat-screen { height: 500px; overflow-y: auto; scroll-behavior: smooth; }
+        .chat-screen::-webkit-scrollbar { width: 0px; }
+        .input-field { background: #020617; border: 1px solid #334155; border-radius: 12px; color: white; }
+        .input-field:focus { border-color: #3b82f6; outline: none; }
+    </style>
+</head>
+<body class="p-4">
+    <div class="flex flex-col lg:flex-row gap-6">
+        
+        <div class="flex-1 terminal p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-xl font-black text-blue-500 italic">THE TRADE PRO v11.0</h1>
+                <div id="status" class="text-[10px] bg-blue-900/30 text-blue-400 px-2 py-1 rounded">SYSTEM: ONLINE</div>
+            </div>
+            <div class="w-full h-[580px] rounded-xl overflow-hidden border border-slate-800">
+                <iframe id="mainChart" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark&interval=60&style=1" class="w-full h-full" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-[400px] terminal p-4 flex flex-col">
+            <h2 class="text-emerald-400 font-bold mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                OPERATOR INTELLIGENCE
+            </h2>
+            
+            <div id="chatBox" class="chat-screen space-y-4 mb-4 text-sm p-1">
+                <div class="bg-slate-800/50 p-3 rounded-lg border-l-4 border-blue-500">
+                    <b>The Trade:</b> नमस्ते नितेश! मैं तैयार हूँ। <br><br>
+                    एसेट का नाम (Gold, BTC) या सवाल टाइप करें।
+                </div>
+            </div>
+
+            <div class="mt-auto flex gap-2">
+                <input type="text" id="userInput" placeholder="यहाँ लिखें..." class="input-field flex-1 p-3 text-sm">
+                <button onclick="process()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl font-bold transition-all">RUN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enter Key Support
+        document.getElementById("userInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                process();
             }
+        });
 
-            // Asset Switch Logic
-            for (let key in symbols) {
-                if (input.includes(key)) {
-                    chart.src = https://s.tradingview.com/widgetembed/?symbol=${symbols[key]}&theme=dark&interval=60&hidesidetoolbar=0&symboledit=1&style=1;
-                    title.innerText = "ASSET: " + key.toUpperCase();
-                    response = <b>${key.toUpperCase()} चार्ट लोड हो गया है!</b><br>मार्केट स्ट्रक्चर अभी 'High Liquidity' ज़ोन में है।;
-                    found = true;
-                    break;
+        const assets = {
+            "gold": "OANDA:XAUUSD",
+            "bitcoin": "BINANCE:BTCUSDT",
+            "btc": "BINANCE:BTCUSDT",
+            "nifty": "NSE:NIFTY",
+            "eth": "BINANCE:ETHUSDT"
+        };
+
+        function process() {
+            const inputField = document.getElementById('userInput');
+            const input = inputField.value.trim().toLowerCase();
+            const chat = document.getElementById('chatBox');
+            const chart = document.getElementById('mainChart');
+
+            if (!input) return;
+
+            // User Chat Bubble
+            chat.innerHTML += <div class="flex justify-end"><div class="bg-blue-600/20 text-blue-300 p-2 rounded-lg text-xs italic border border-blue-500/20">आप: ${input}</div></div>;
+
+            let reply = "क्षमा करें, मैं समझ नहीं पाया। कृपया 'Gold' या 'Indicator' लिखकर देखें।";
+
+            // 1. Creator Question (Priority)
+            if (input.includes("kisne banaya") || input.includes("किसने बनाया")) {
+                import streamlit as st
+import streamlit.components.v1 as components
+
+st.set_page_config(layout="wide", page_title="The Trade AI - Final Fix")
+
+# क्लीन और वर्किंग कोड
+html_code = """
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: #f8fafc; font-family: ui-sans-serif, system-ui; overflow: hidden; }
+        .terminal { background: #0f172a; border: 2px solid #1e40af; border-radius: 16px; }
+        .chat-screen { height: 500px; overflow-y: auto; scroll-behavior: smooth; }
+        .chat-screen::-webkit-scrollbar { width: 0px; }
+        .input-field { background: #020617; border: 1px solid #334155; border-radius: 12px; color: white; }
+        .input-field:focus { border-color: #3b82f6; outline: none; }
+    </style>
+</head>
+<body class="p-4">
+    <div class="flex flex-col lg:flex-row gap-6">
+        
+        <div class="flex-1 terminal p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-xl font-black text-blue-500 italic">THE TRADE PRO v11.0</h1>
+                <div id="status" class="text-[10px] bg-blue-900/30 text-blue-400 px-2 py-1 rounded">SYSTEM: ONLINE</div>
+            </div>
+            <div class="w-full h-[580px] rounded-xl overflow-hidden border border-slate-800">
+                <iframe id="mainChart" src="https://s.tradingview.com/widgetembed/?symbol=BINANCE:BTCUSDT&theme=dark&interval=60&style=1" class="w-full h-full" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-[400px] terminal p-4 flex flex-col">
+            <h2 class="text-emerald-400 font-bold mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                OPERATOR INTELLIGENCE
+            </h2>
+            
+            <div id="chatBox" class="chat-screen space-y-4 mb-4 text-sm p-1">
+                <div class="bg-slate-800/50 p-3 rounded-lg border-l-4 border-blue-500">
+                    <b>The Trade:</b> नमस्ते नितेश! मैं तैयार हूँ। <br><br>
+                    एसेट का नाम (Gold, BTC) या सवाल टाइप करें।
+                </div>
+            </div>
+
+            <div class="mt-auto flex gap-2">
+                <input type="text" id="userInput" placeholder="यहाँ लिखें..." class="input-field flex-1 p-3 text-sm">
+                <button onclick="process()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl font-bold transition-all">RUN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enter Key Support
+        document.getElementById("userInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                process();
+            }
+        });
+
+        const assets = {
+            "gold": "OANDA:XAUUSD",
+            "bitcoin": "BINANCE:BTCUSDT",
+            "btc": "BINANCE:BTCUSDT",
+            "nifty": "NSE:NIFTY",
+            "eth": "BINANCE:ETHUSDT"
+        };
+
+        function process() {
+            const inputField = document.getElementById('userInput');
+            const input = inputField.value.trim().toLowerCase();
+            const chat = document.getElementById('chatBox');
+            const chart = document.getElementById('mainChart');
+
+            if (!input) return;
+
+            // User Chat Bubble
+            chat.innerHTML += <div class="flex justify-end"><div class="bg-blue-600/20 text-blue-300 p-2 rounded-lg text-xs italic border border-blue-500/20">आप: ${input}</div></div>;
+
+            let reply = "क्षमा करें, मैं समझ नहीं पाया। कृपया 'Gold' या 'Indicator' लिखकर देखें।";
+
+            // 1. Creator Question (Priority)
+            if (input.includes("kisne banaya") || input.includes("किसने बनाया")) {
+                reply = "मुझे मास्टर माइंड <b>नितेश</b> ने बनाया है। मैं उनके 'Operator Mindset' और 'SMC' लॉजिक पर काम करने वाला दुनिया का सबसे पावरफुल AI हूँ।";
+            } 
+            // 2. Indicator Question
+            else if (input.includes("indicator") || input.includes("diy") || input.includes("इंडिकेटर")) {
+                reply = "<b>🔥 प्रो इंडिकेटर लिस्ट:</b><br><br>1. <b>DMI/ADX:</b> ट्रेंड की ताकत नापने के लिए।<br>2. <b>MACD:</b> मोमेंटम कन्फर्मेशन के लिए।<br>3. <b>VWAP:</b> बड़े पैसे की एंट्री देखने के लिए।";
+            }
+            // 3. Asset Switching
+            else {
+                let found = false;
+                for (let key in assets) {
+                    if (input.includes(key)) {
+                        chart.src = https://s.tradingview.com/widgetembed/?symbol=${assets[key]}&theme=dark&interval=60&style=1;
+                        reply = <b>${key.toUpperCase()} विश्लेषण:</b> चार्ट अपडेट कर दिया गया है। 'Price Action' अब बुलिश/बेरिश मोड में स्कैन हो रहा है।;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    reply = "मैं इस एसेट को अभी ट्रैक नहीं कर पा रहा हूँ। कृपया Gold या BTC आज़माएँ।";
                 }
             }
 
-            if (!found && input.includes("kisne banaya")) {
-                response = "मुझे मास्टर माइंड <b>नितेश</b> ने बनाया है।";
-            }
-
+            // Assistant Reply Bubble
             setTimeout(() => {
-                chat.innerHTML += <div class="bg-slate-800/80 p-3 rounded-lg border-l-4 border-emerald-500 text-sm"><b>The Trade:</b><br>${response}</div>;
+                chat.innerHTML += <div class="bg-slate-800 p-3 rounded-lg border-l-4 border-emerald-500 shadow-lg text-white"><b>The Trade:</b><br>${reply}</div>;
                 chat.scrollTop = chat.scrollHeight;
-            }, 300);
+            }, 200);
 
-            document.getElementById('userInput').value = "";
+            inputField.value = "";
         }
     </script>
 </body>
 </html>
 """
 
-# Streamlit Component Call
 components.html(html_code, height=720, scrolling=False)
