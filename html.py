@@ -1,4 +1,4 @@
-mport streamlit as st
+import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
@@ -61,4 +61,5 @@ if user_input:
     audio_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={encoded_msg}&tl=hi&client=tw-ob"
     st.audio(audio_url, format="audio/mp3")
    
+
 
