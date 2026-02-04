@@ -4,10 +4,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import urllib.parse
 
-# पेज कॉन्फ़िगरेशन
-st.set_page_config(page_title="The Trade", layout="wide")
+# 1. प्रोफेशनल 'The Trade' सेटअप
+st.set_page_config(page_title="The Trade AI", layout="wide")
 
-# --- LOGIN ---
+# 2. लॉगिन (Simple & Fast)
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if not st.session_state.logged_in:
@@ -17,64 +17,61 @@ if not st.session_state.logged_in:
     st.title("🔒 The Trade - लॉगिन करें")
     st.stop()
 
-# --- SIDEBAR ---
+# 3. साइडबार - केवल ज़रूरी जानकारी
 st.sidebar.title("📈 The Trade")
-st.sidebar.write("Developed by: *Nitesh*")
+st.sidebar.write("Creator: *Nitesh*")
 asset = st.sidebar.selectbox('Asset चुनें:', ('Bitcoin', 'Gold', 'USD/INR', 'Nifty 50'))
 symbols = {'Bitcoin':'BTC-USD', 'Gold':'GC=F', 'USD/INR':'INR=X', 'Nifty 50':'^NSEI'}
 sym = symbols[asset]
 
-# --- LIVE CHART ENGINE ---
-st.title("📊 The Trade - Live Analysis")
+# 4. लाइव चार्ट इंजन (काली स्क्रीन का अंत)
+st.title(f"🚀 {asset} लाइव एनालिसिस")
 try:
-    # 5 दिन का डेटा ताकि चार्ट खाली न रहे
+    # 5 दिन का डेटा ताकि ग्राफ हमेशा साफ़ दिखे
     df = yf.download(sym, period="5d", interval="15m")
     
     if not df.empty:
+        # असली कैंडलस्टिक चार्ट
         fig = go.Figure(data=[go.Candlestick(
             x=df.index, open=df['Open'], high=df['High'],
             low=df['Low'], close=df['Close'],
             increasing_line_color='#00ff00', decreasing_line_color='#ff0000'
         )])
-        fig.update_layout(template="plotly_dark", xaxis_rangeslider_visible=False, height=500)
+        fig.update_layout(template="plotly_dark", xaxis_rangeslider_visible=False, height=450)
         st.plotly_chart(fig, use_container_width=True)
         
-        # साफ़ भाव (Clean Price for AI)
-        last_price = float(df['Close'].iloc[-1])
+        # भाव को साफ़ नंबर में बदलना (Junk टेक्स्ट हटाने के लिए)
+        last_price = round(float(df['Close'].iloc[-1]), 2)
     else:
         st.error("डेटा नहीं मिला।")
         last_price = 0
 except Exception:
-    st.error("मार्केट डेटा लोड नहीं हो सका।")
+    st.error("मार्केट से कनेक्शन टूट गया है।")
     last_price = 0
 
-# --- THE TRADE AI (बोलने वाला) ---
+# 5. स्मार्ट टॉकिंग AI (मेरे जैसा सटीक जवाब)
 st.markdown("---")
-st.subheader("🤖 The Trade AI Assistant")
-query = st.text_input("मुझसे पूछें (जैसे: मार्केट कैसा है? या तुम्हें किसने बनाया?):")
+st.subheader("🤖 The Trade असिस्टेंट")
+user_input = st.text_input("मुझसे पूछें (जैसे: भाव क्या है? या तुम कौन हो?):", key="main_chat")
 
-if query:
-    query_l = query.lower()
-    # 1. क्रिएटर का सवाल
-    if any(word in query_l for word in ["बनाया", "creator", "kaun hai", "nitesh"]):
-        ans = "मुझे नीतीश ने बनाया है। मैं 'The Trade' का एक्सपर्ट एआई हूँ।"
+if user_input:
+    user_q = user_input.lower()
     
-    # 2. मार्केट का हाल
-    elif any(word in query_l for word in ["market", "bhav", "price", "halat", "kaisa"]):
-        trend = "ऊपर जा रहा है" if df['Close'].iloc[-1] > df['Open'].iloc[-1] else "नीचे गिर रहा है"
-        ans = f"नीतीश, {asset} का भाव अभी {last_price:.2f} है और मार्केट अभी {trend}।"
-    
-    # 3. जनरल ट्रेडिंग ज्ञान
+    # सटीक जवाब का लॉजिक
+    if any(word in user_q for word in ["बनाया", "creator", "kaun hai", "nitesh"]):
+        final_ans = "मुझे नीतीश ने बनाया है। मैं 'The Trade' का स्मार्ट एआई हूँ।"
+    elif any(word in user_q for word in ["bhav", "price", "market", "rate"]):
+        final_ans = f"नीतीश, अभी {asset} का भाव {last_price} चल रहा है।"
     else:
-        ans = f"ट्रेडिंग में डिसिप्लिन ज़रूरी है। {asset} का ताज़ा भाव {last_price:.2f} है, सोच-समझकर ट्रेड करें।"
+        final_ans = f"नीतीश, {asset} का ताज़ा भाव {last_price} है। क्या आप ट्रेड करना चाहते हैं?"
 
-    # साफ़ जवाब दिखाएं
-    st.chat_message("assistant").write(ans)
+    # स्क्रीन पर साफ़ जवाब
+    st.chat_message("assistant").write(final_ans)
 
-    # साफ़ आवाज़ (No junk text)
-    clean_msg = urllib.parse.quote(ans)
-    audio_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={clean_msg}&tl=hi&client=tw-ob"
+    # वॉइस फिक्स (0:00 एरर खत्म)
+    clean_text = urllib.parse.quote(final_ans)
+    audio_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={clean_text}&tl=hi&client=tw-ob"
+    
+    st.write("📢 *सुनने के लिए प्ले दबाएं:*")
     st.audio(audio_url, format="audio/mp3")
-
-
 
