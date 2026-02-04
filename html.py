@@ -285,4 +285,5 @@ html_code = """
 </html>
 """
 
-components.html(html_code, height=720, scrolling=False)
+
+
