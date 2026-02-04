@@ -1,3 +1,8 @@
+import streamlit as st
+import yfinance as yf
+import pandas as pd
+import plotly.graph_objects as go
+import urllib.parse
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -123,3 +128,4 @@
 
 </body>
 </html>
+
