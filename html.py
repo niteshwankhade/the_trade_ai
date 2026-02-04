@@ -1,131 +1,65 @@
-import streamlit as st
-import yfinance as yf
-import pandas as pd
-import plotly.graph_objects as go
-import urllib.parse
 <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NITESH AI - Operator Terminal</title>
-    <script src="https://s3.tradingview.com/tv.js"></script>
+    <title>The Trade - Live Crypto Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #050a10; --panel: #111b27; }
-        body { margin: 0; font-family: 'Consolas', monospace; background: var(--bg); color: white; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar for AI */
-        #ai-terminal { width: 400px; background: var(--panel); display: flex; flex-direction: column; border-right: 1px solid #2d4156; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
-        .header { padding: 20px; background: #1a2635; border-bottom: 2px solid var(--primary); text-align: center; }
-        .header h2 { margin: 0; color: var(--primary); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; }
-        
-        /* Chat Area */
-        #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        .msg { padding: 12px; border-radius: 8px; max-width: 85%; line-height: 1.4; font-size: 0.95rem; }
-        .ai-msg { background: rgba(0, 255, 136, 0.1); border-left: 3px solid var(--primary); align-self: flex-start; }
-        .user-msg { background: #2d4156; align-self: flex-end; color: #00ff88; }
-        
-        /* Input Area */
-        .input-area { padding: 20px; background: #1a2635; display: flex; gap: 10px; }
-        input { flex: 1; background: #050a10; border: 1px solid #2d4156; padding: 12px; color: white; border-radius: 5px; outline: none; }
-        input:focus { border-color: var(--primary); }
-        button { background: var(--primary); color: black; border: none; padding: 0 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-
-        /* Chart Area */
-        #chart-canvas { flex: 1; position: relative; }
-        .status-bar { position: absolute; top: 10px; right: 20px; background: rgba(0,0,0,0.7); padding: 5px 15px; border-radius: 20px; font-size: 12px; border: 1px solid var(--primary); z-index: 10; }
+        .chat-box { height: 300px; overflow-y: auto; border: 1px solid #333; }
+        body { background-color: #0f172a; color: white; }
     </style>
 </head>
-<body>
+<body class="p-5">
 
-<div id="ai-terminal">
-    <div class="header">
-        <h2>NITESH AI v1.0</h2>
-        <small style="color: #64748b;">Operator Mindset Active</small>
+    <header class="text-center mb-10">
+        <h1 class="text-4xl font-bold text-blue-400">THE TRADE</h1>
+        <p class="text-gray-400">Created by: <span class="text-white font-semibold">Nitesh</span></p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-slate-800 p-4 rounded-xl shadow-lg">
+            <h2 class="text-xl mb-4">Bitcoin Live Analysis</h2>
+            <div id="tradingview_chart" style="height: 400px;">
+                <div class="tradingview-widget-container" style="height:100%;width:100%">
+                    <iframe scrolling="no" allowtransparency="true" frameborder="0" src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?locale=en#%7B%22symbol%22%3A%22BINANCE%3ABTCUSDT%22%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22100%25%22%2C%22dateRange%22%3A%221D%22%2C%22colorTheme%22%3A%22dark%22%2C%22trendLineColor%22%3A%22%2337a6ef%22%2C%22underLineColor%22%3A%22rgba(55%2C%20166%2C%20239%2C%200.15)%22%2C%22isTransparent%22%3Afalse%2C%22autosize%22%3Atrue%2C%22largeChartUrl%22%3A%22%22%7D" style="width: 100%; height: 100%;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 p-4 rounded-xl shadow-lg">
+            <h2 class="text-xl mb-4 text-green-400">Trade Assistant</h2>
+            <div id="chatBox" class="chat-box bg-slate-900 p-3 rounded mb-4">
+                <p class="text-gray-500">नमस्ते नितेश! मैं आपकी ट्रेडिंग में क्या मदद कर सकता हूँ?</p>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="userInput" placeholder="सवाल पूछें (उदा. तुम्हें किसने बनाया?)" class="flex-1 p-2 rounded bg-slate-700 border-none outline-none">
+                <button onclick="askAssistant()" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500">पूछें</button>
+            </div>
+        </div>
     </div>
-    <div id="chat-flow">
-        <div class="msg ai-msg">प्रणाम। मैं नितेश द्वारा निर्मित एक एडवांस ट्रेडिंग ऑपरेटर AI हूँ। मार्केट का शिकार करने के लिए तैयार?</div>
-    </div>
-    <div class="input-area">
-        <input type="text" id="userInput" placeholder="ऑपरेटर की तरह सोचें..." onkeypress="if(event.key==='Enter') processQuery()">
-        <button onclick="processQuery()">SEND</button>
-    </div>
-</div>
 
-<div id="chart-canvas">
-    <div class="status-bar">● LIVE DATA FEED ACTIVE</div>
-    <div id="tv_chart_container" style="height: 100%;"></div>
-</div>
+    <script>
+        function askAssistant() {
+            const input = document.getElementById('userInput').value.toLowerCase();
+            const chatBox = document.getElementById('chatBox');
+            let response = "";
 
-<script>
-    // TradingView Chart Initialization
-    new TradingView.widget({
-        "autosize": true,
-        "symbol": "BINANCE:BTCUSDT",
-        "interval": "15",
-        "timezone": "Asia/Kolkata",
-        "theme": "dark",
-        "style": "1",
-        "locale": "in",
-        "container_id": "tv_chart_container",
-        "hide_side_toolbar": false,
-        "allow_symbol_change": true,
-        "details": true,
-        "hotlist": true,
-        "calendar": true
-    });
+            if (input.includes("kisne banaya") || input.includes("creator")) {
+                response = "मुझे *नितेश* ने बनाया है। वह एक विजनरी ट्रेडर और डेवलपर हैं।";
+            } else if (input.includes("bitcoin") || input.includes("price")) {
+                response = "अभी बिटकॉइन का चार्ट साइड में दिख रहा है। ट्रेंड बुलिश लग रहा है!";
+            } else {
+                response = "क्षमा करें, मैं अभी सीख रहा हूँ। आप नितेश से इसके बारे में पूछ सकते हैं।";
+            }
 
-    const chatFlow = document.getElementById('chat-flow');
-    const synth = window.speechSynthesis;
-
-    function speak(text) {
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'hi-IN';
-        utter.rate = 1.1;
-        utter.pitch = 1;
-        synth.speak(utter);
-    }
-
-    function addMessage(text, type) {
-        const div = document.createElement('div');
-        div.className = msg ${type}-msg;
-        div.innerText = text;
-        chatFlow.appendChild(div);
-        chatFlow.scrollTop = chatFlow.scrollHeight;
-    }
-
-    function processQuery() {
-        const input = document.getElementById('userInput');
-        const query = input.value.trim().toLowerCase();
-        if (!query) return;
-
-        addMessage(input.value, 'user');
-        input.value = '';
-
-        let response = "";
-
-        // Intelligent Routing
-        if (query.includes("बनाया") || query.includes("creator") || query.includes("owner")) {
-            response = "मुझे 'नितेश' ने बनाया है। मैं उनके गॉड लेवल माइंडसेट और ऑपरेटर थ्योरी पर काम करता हूँ।";
-        } 
-        else if (query.includes("btc") || query.includes("bitcoin")) {
-            response = "बिटकॉइन में अभी ऑपरेटर लिक्विडिटी हंट कर रहे हैं। 15 मिनट के चार्ट पर फेक-आउट से बचें। नितेश का नियम याद रखें: रिटेलर जहाँ फंसता है, हम वहीं एंट्री लेते हैं।";
+            chatBox.innerHTML += <div class='mb-2'><b>आप:</b> ${document.getElementById('userInput').value}</div>;
+            chatBox.innerHTML += <div class='mb-4 text-blue-300'><b>Assistant:</b> ${response}</div>;
+            
+            document.getElementById('userInput').value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
-        else if (query.includes("ट्रेड") || query.includes("signal")) {
-            response = "मार्केट अभी कंसोलिडेशन में है। हाई वॉल्यूम ब्रेकआउट का इंतज़ार करें। 90% सटीकता के लिए कन्फर्मेशन जरूरी है।";
-        }
-        else {
-            response = "एनालिसिस पूरा हुआ। डेटा संकेत दे रहा है कि मार्केट बड़े मूव की तैयारी में है। नितेश के सिस्टम के अनुसार धैर्य ही पैसा है।";
-        }
-
-        // Delay for realism
-        setTimeout(() => {
-            addMessage(response, 'ai');
-            speak(response);
-        }, 600);
-    }
-</script>
+    </script>
 
 </body>
 </html>
-
