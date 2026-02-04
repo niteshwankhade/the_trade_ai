@@ -2,73 +2,81 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
+import urllib.parse
 
-# पेज की सेटिंग
-st.set_page_config(page_title="God-Level AI Trader", layout="wide")
+# 1. पेज की मजबूत सेटिंग
+st.set_page_config(page_title="Nitesh God-Level AI", layout="wide")
 
-# --- LOGIN SECTION ---
+# 2. सुरक्षित लॉगिन (Google Style)
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    st.sidebar.title("🔐 Access Control")
+    st.sidebar.title("🔐 Access")
     if st.sidebar.button("Login with Google 🆔"):
         st.session_state.logged_in = True
         st.rerun()
     st.title("🔒 कृपया लॉगिन करें")
-    st.info("इस शक्तिशाली AI को एक्सेस करने के लिए साइडबार से लॉगिन करें।")
+    st.info("नीतीश के खास AI का उपयोग करने के लिए लॉगिन बटन दबाएं।")
     st.stop()
 
-# --- MAIN APP ---
-st.title("🚀 God-Level Trading AI")
-st.sidebar.success("Logged in as: User")
-
-# --- परिचय और आपका नाम (CREATOR CREDITS) ---
+# 3. साइडबार - यहाँ से आप गोल्ड या बिटकॉइन बदल सकते हैं
+st.sidebar.title("👤 Creator: Nitesh")
 st.sidebar.markdown("---")
-st.sidebar.subheader("👤 Creator Details")
-st.sidebar.write("Developed by: *Nitesh*")
+option = st.sidebar.selectbox('क्या देखना चाहते हैं?', 
+    ('Bitcoin (BTC-USD)', 'Gold (GC=F)', 'USD/INR', 'NIFTY 50 (^NSEI)', 'Reliance (RELIANCE.NS)'))
 
-# --- AI CHAT LOGIC ---
-query = st.chat_input("मुझसे कुछ भी पूछें (जैसे: तुम्हें किसने बनाया है?)...")
+symbol_dict = {
+    'Bitcoin (BTC-USD)':'BTC-USD', 'Gold (GC=F)':'GC=F', 
+    'USD/INR':'INR=X', 'NIFTY 50 (^NSEI)':'^NSEI', 'Reliance (RELIANCE.NS)':'RELIANCE.NS'
+}
+symbol = symbol_dict[option]
 
-if query:
-    with st.chat_message("user"):
-        st.write(query)
-    
-    with st.chat_message("assistant"):
-        # अगर कोई आपके बारे में पूछे
-        if "बनाया" in query or "creator" in query.lower() or "who made you" in query.lower() or "kaun hai" in query.lower():
-            response = "मुझे *नीतीश (Nitesh)* ने बनाया है। मैं उनका निजी 'God-Level' ट्रेडिंग असिस्टेंट हूँ।"
-        else:
-            response = "मैं आपके डेटा का विश्लेषण कर रहा हूँ। चार्ट देखें और सही फैसला लें।"
-        
-        st.write(response)
-        # आवाज़ वाला फीचर
-        st.audio(f"https://translate.google.com/translate_tts?ie=UTF-8&q={response}&tl=hi&client=tw-ob", format="audio/mp3")
-
-# --- TRADING SECTION ---
-symbol = st.sidebar.text_input("शेयर का कोड (जैसे: TATAMOTORS.NS)", "RELIANCE.NS")
-
+# 4. कैंडलस्टिक चार्ट (लाइन वाली समस्या का परमानेंट इलाज)
+# interval='5m' से कैंडल मोटी और साफ़ दिखती हैं
 try:
-    data = yf.download(symbol, period="1mo", interval="1d")
+    data = yf.download(symbol, period="1d", interval="5m")
+    
     if not data.empty:
-        # Candlestick Chart
+        st.subheader(f"📊 {option} लाइव कैंडलस्टिक चार्ट")
+        
+        # असली कैंडलस्टिक डेटा
         fig = go.Figure(data=[go.Candlestick(
             x=data.index,
             open=data['Open'], high=data['High'],
             low=data['Low'], close=data['Close'],
-            name="Market Data"
+            increasing_line_color='#26A69A', decreasing_line_color='#EF5350' # असली ट्रेडिंग कलर्स
         )])
-        fig.update_layout(title=f"{symbol} का लाइव कैंडलस्टिक चार्ट", template="plotly_dark")
+
+        fig.update_layout(
+            xaxis_rangeslider_visible=False, 
+            template="plotly_dark", 
+            height=500,
+            margin=dict(l=0, r=0, t=0, b=0)
+        )
         st.plotly_chart(fig, use_container_width=True)
         
-        # Live Stats
-        last_price = data['Close'].iloc[-1]
-        st.metric(label=f"Current Price ({symbol})", value=f"₹{float(last_price):.2f}")
+        # लाइव प्राइस मीटर
+        current_price = data['Close'].iloc[-1]
+        st.metric(label="लाइव मार्केट भाव", value=f"{current_price:.2f}")
+
     else:
-        st.warning("डेटा लोड नहीं हो सका। कृपया सही Ticker डालें।")
+        st.error("बाज़ार का डेटा अभी नहीं मिल रहा। कृपया इंटरनेट चेक करें।")
 except Exception as e:
-    st.error("एक तकनीकी समस्या आई है। कृपया कोड चेक करें।")
+    st.error("डेटा लोड करने में समस्या आई।")
 
+# 5. AI आवाज़ (पढ़कर सुनाने वाली समस्या का परमानेंट इलाज)
+st.markdown("---")
+st.subheader("🤖 नीतीश का बोलने वाला AI")
 
+user_query = st.text_input("मुझसे सवाल पूछें (जैसे: तुम्हें किसने बनाया?):")
 
+if user_query:
+    # जवाब का लॉजिक
+    if any(word in user_query.lower() for word in ["बनाया", "creator", "who made you", "kaun hai", "नीतीश"]):
+        reply = "मुझे नीतीश ने बनाया है। मैं उनका गॉड लेवल ट्रेडिंग एआई हूँ और उनके इशारे पर काम करता हूँ।"
+    else:
+        reply = f"नीतीश, {option} का भाव अभी {current_price:.2f} है। मेरे हिसाब से आपको सावधानी से ट्रेड करना चाहिए।"
+
+    # टेक्स्ट और ऑडियो एक साथ
+    st.ch
